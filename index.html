@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RUTINA">
+<meta name="theme-color" content="#ff4d00">
+<title>Mi Rutina Diaria</title>
+<link rel="manifest" href="./manifest.json">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════
+   VARIABLES & RESET
+═══════════════════════════════════════════ */
+:root {
+  --bg: #080808;
+  --surface: #0f0f0f;
+  --card: #141414;
+  --card2: #1a1a1a;
+  --border: #1f1f1f;
+  --border2: #2a2a2a;
+  --accent: #ff4d00;
+  --accent-dim: rgba(255,77,0,0.12);
+  --accent2: #ffb300;
+  --green: #00e676;
+  --green-dim: rgba(0,230,118,0.12);
+  --blue: #2979ff;
+  --text: #f2f2f2;
+  --text2: #999999;
+  --text3: #555555;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: none;
+}
+
+/* ═══════════════════════════════════════════
+   TOP STATUS BAR
+═══════════════════════════════════════════ */
+.status-bar {
+  padding: calc(var(--safe-top) + 12px) 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  background: var(--bg);
+  position: relative;
+  z-index: 10;
+}
+
+.app-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: logoPulse 2s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.7); }
+}
+
+.notif-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 7px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.notif-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.notif-btn .notif-icon { font-size: 14px; }
+
+/* ═══════════════════════════════════════════
+   SCROLL AREA
+═══════════════════════════════════════════ */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(80px + var(--safe-bot));
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════════════
+   CLOCK HERO
+═══════════════════════════════════════════ */
+.clock-section {
+  padding: 8px 20px 20px;
+  position: relative;
+}
+.clock-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+}
+.clock-big {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(72px, 22vw, 110px);
+  line-height: 0.88;
+  letter-spacing: 2px;
+  color: var(--text);
+}
+.clock-sep {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(60px, 18vw, 90px);
+  line-height: 0.88;
+  color: var(--accent);
+  animation: sepBlink 1s step-end infinite;
+  margin: 0 2px;
+}
+@keyframes sepBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+.clock-meta {
+  display: flex;
+  flex-direction: column;
+  margin-left: 12px;
+  padding-bottom: 8px;
+  gap: 4px;
+}
+.clock-date {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+.clock-ampm {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   ACTIVE BLOCK
+═══════════════════════════════════════════ */
+.active-block {
+  margin: 0 16px 16px;
+  background: var(--accent);
+  border-radius: 24px;
+  padding: 22px 22px 20px;
+  position: relative;
+  overflow: hidden;
+  animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes slideUp {
+  from { opacity:0; transform: translateY(20px) scale(0.97); }
+  to   { opacity:1; transform: translateY(0) scale(1); }
+}
+.active-block::after {
+  content: attr(data-emoji);
+  position: absolute;
+  right: -10px; top: -15px;
+  font-size: 100px;
+  opacity: 0.12;
+  pointer-events: none;
+  line-height: 1;
+}
+.active-tag {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+.live-dot {
+  width: 7px; height: 7px;
+  background: #000;
+  border-radius: 50%;
+  animation: livePulse 1s ease-in-out infinite;
+}
+@keyframes livePulse {
+  0%,100% { transform:scale(1); opacity:0.7; }
+  50%     { transform:scale(1.8); opacity:1; }
+}
+.active-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  letter-spacing: 1px;
+  line-height: 1;
+  color: #000;
+  margin-bottom: 4px;
+}
+.active-time-range {
+  font-size: 12px;
+  color: rgba(0,0,0,0.5);
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+}
+.active-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.active-task-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.8);
+}
+.active-task-item::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.35);
+  flex-shrink: 0;
+}
+/* COUNTDOWN to next */
+.active-countdown {
+  position: absolute;
+  bottom: 16px; right: 18px;
+  text-align: right;
+}
+.countdown-label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(0,0,0,0.4);
+  font-weight: 700;
+}
+.countdown-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: rgba(0,0,0,0.6);
+  letter-spacing: 1px;
+  line-height: 1;
+}
+
+/* ═══════════════════════════════════════════
+   WARNING BLOCK (10 min antes)
+═══════════════════════════════════════════ */
+.warning-block {
+  margin: 0 16px 16px;
+  background: rgba(255,179,0,0.1);
+  border: 1px solid rgba(255,179,0,0.3);
+  border-radius: 18px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: slideUp 0.3s ease;
+}
+.warning-icon { font-size: 26px; flex-shrink: 0; }
+.warning-text { flex: 1; }
+.warning-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent2);
+  margin-bottom: 2px;
+}
+.warning-sub { font-size: 12px; color: var(--text2); }
+.warning-time {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--accent2);
+  letter-spacing: 1px;
+}
+
+/* ═══════════════════════════════════════════
+   STREAK
+═══════════════════════════════════════════ */
+.streak-row {
+  display: flex;
+  gap: 10px;
+  margin: 0 16px 16px;
+}
+.streak-card {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.streak-card-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+.streak-card-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  line-height: 1;
+  color: var(--accent2);
+}
+.streak-card-val.green { color: var(--green); }
+.streak-dots {
+  display: flex;
+  gap: 5px;
+  margin-top: 4px;
+}
+.s-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--border2);
+  transition: background 0.3s;
+}
+.s-dot.lit { background: var(--accent2); }
+.s-dot.today { background: var(--accent); box-shadow: 0 0 0 3px rgba(255,77,0,0.2); }
+
+/* ═══════════════════════════════════════════
+   SECTION TITLE
+═══════════════════════════════════════════ */
+.sec-title {
+  padding: 0 20px;
+  margin-bottom: 12px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+/* ═══════════════════════════════════════════
+   TIMELINE
+═══════════════════════════════════════════ */
+.timeline {
+  padding: 0 16px;
+}
+.tl-item {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  transition: opacity 0.3s;
+}
+.tl-item.past { opacity: 0.25; }
+.tl-item.upcoming { opacity: 0.65; }
+.tl-item.active { opacity: 1; }
+
+/* Left column: time */
+.tl-time {
+  width: 52px;
+  flex-shrink: 0;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 15px;
+  letter-spacing: 0.5px;
+  color: var(--text3);
+  padding-top: 3px;
+  text-align: right;
+  padding-right: 12px;
+  transition: color 0.3s;
+}
+.tl-item.active .tl-time { color: var(--accent); }
+
+/* Center column: dot + line */
+.tl-spine {
+  width: 20px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.tl-dot {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  border: 2px solid var(--border2);
+  background: var(--bg);
+  flex-shrink: 0;
+  margin-top: 3px;
+  transition: all 0.3s;
+  position: relative;
+  z-index: 1;
+}
+.tl-item.active .tl-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 5px rgba(255,77,0,0.18);
+}
+.tl-item.past .tl-dot {
+  background: var(--green);
+  border-color: var(--green);
+}
+.tl-line {
+  width: 2px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--border);
+  margin: 3px 0;
+}
+.tl-item:last-child .tl-line { display: none; }
+
+/* Right column: content */
+.tl-content {
+  flex: 1;
+  padding: 0 0 20px 12px;
+}
+.tl-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+.tl-emoji { font-size: 18px; }
+.tl-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+.tl-item.past .tl-name { color: var(--text3); }
+.tl-check {
+  font-size: 13px;
+  color: var(--green);
+}
+/* Expandable tasks — only show for active and next */
+.tl-tasks {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  display: none;
+}
+.tl-item.active .tl-tasks,
+.tl-item.next-up .tl-tasks { display: flex; }
+.tl-task {
+  font-size: 12px;
+  color: var(--text2);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  line-height: 1.5;
+}
+.tl-task::before {
+  content: '→';
+  color: var(--text3);
+  font-size: 11px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.tl-item.active .tl-task { color: rgba(255,255,255,0.65); }
+.tl-item.active .tl-task::before { color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   BOTTOM BAR
+═══════════════════════════════════════════ */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  padding: 12px 16px calc(12px + var(--safe-bot));
+  background: linear-gradient(to top, var(--bg) 65%, transparent);
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
+.btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 16px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s, opacity 0.12s;
+  letter-spacing: 0.3px;
+}
+.btn:active { transform: scale(0.95); opacity: 0.85; }
+.btn-done {
+  background: var(--accent);
+  color: #000;
+  flex: 2;
+}
+.btn-done.done-today {
+  background: var(--green-dim);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+.btn-mute {
+  background: var(--card2);
+  color: var(--text2);
+  border: 1px solid var(--border2);
+  flex: 1;
+  font-size: 20px;
+  padding: 12px;
+}
+
+/* ═══════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════ */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 12px 22px;
+  border-radius: 50px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 9999;
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: toastAnim 2.8s cubic-bezier(0.34,1.2,0.64,1) forwards;
+  pointer-events: none;
+}
+@keyframes toastAnim {
+  0%   { opacity:0; transform: translateX(-50%) translateY(-12px); }
+  15%  { opacity:1; transform: translateX(-50%) translateY(0); }
+  75%  { opacity:1; transform: translateX(-50%) translateY(0); }
+  100% { opacity:0; transform: translateX(-50%) translateY(-8px); }
+}
+
+/* ═══════════════════════════════════════════
+   NOTIFICATION PERMISSION OVERLAY
+═══════════════════════════════════════════ */
+.notif-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  padding: 20px;
+  backdrop-filter: blur(8px);
+}
+.notif-sheet {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 28px;
+  padding: 32px 24px 28px;
+  width: 100%;
+  animation: sheetUp 0.35s cubic-bezier(0.34,1.2,0.64,1);
+}
+@keyframes sheetUp {
+  from { transform: translateY(40px); opacity:0; }
+  to   { transform: translateY(0); opacity:1; }
+}
+.notif-sheet-emoji { font-size: 52px; display: block; text-align: center; margin-bottom: 16px; }
+.notif-sheet-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  text-align: center;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.notif-sheet-body {
+  font-size: 14px;
+  color: var(--text2);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.notif-sheet-body strong { color: var(--text); }
+.notif-sheet-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.btn-allow {
+  background: var(--accent);
+  color: #000;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: transform 0.12s;
+}
+.btn-allow:active { transform: scale(0.96); }
+.btn-skip {
+  background: transparent;
+  color: var(--text3);
+  padding: 12px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ═══════════════════════════════════════════
+   EMPTY / SLEEP STATE
+═══════════════════════════════════════════ */
+.sleep-block {
+  margin: 0 16px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 28px 22px;
+  text-align: center;
+}
+.sleep-emoji { font-size: 52px; margin-bottom: 12px; }
+.sleep-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.sleep-sub { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="status-bar">
+  <div class="app-logo">
+    <div class="logo-dot"></div>
+    RUTINA
+  </div>
+  <button class="notif-btn" id="notifBtn" onclick="requestNotifPermission()">
+    <span class="notif-icon">🔔</span>
+    <span id="notifLabel">Activar</span>
+  </button>
+</div>
+
+<!-- SCROLL AREA -->
+<div class="scroll-area" id="mainScroll">
+
+  <!-- CLOCK -->
+  <div class="clock-section">
+    <div class="clock-row">
+      <div class="clock-big" id="clockH">--</div>
+      <div class="clock-sep" id="clockSep">:</div>
+      <div class="clock-big" id="clockM">--</div>
+      <div class="clock-meta">
+        <div class="clock-date" id="clockDate">—</div>
+        <div class="clock-ampm" id="clockAMPM">AM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DYNAMIC CONTENT -->
+  <div id="dynamicContent"></div>
+
+  <!-- STREAK -->
+  <div class="streak-row">
+    <div class="streak-card">
+      <div class="streak-card-label">Racha 🔥</div>
+      <div class="streak-card-val" id="streakNum">0</div>
+      <div class="streak-dots" id="streakDots"></div>
+    </div>
+    <div class="streak-card">
+      <div class="streak-card-label">Hoy ✅</div>
+      <div class="streak-card-val green" id="doneLabel">—</div>
+    </div>
+  </div>
+
+  <!-- TIMELINE -->
+  <div class="sec-title">Horario del día</div>
+  <div class="timeline" id="timeline"></div>
+
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="btn btn-mute" id="muteBtn" onclick="toggleMute()" title="Silenciar">🔔</button>
+  <button class="btn btn-done" id="doneBtn" onclick="markDone()">✓ Marcar como listo</button>
+</div>
+
+<!-- NOTIFICATION PERMISSION SHEET -->
+<div class="notif-overlay" id="notifOverlay" style="display:none">
+  <div class="notif-sheet">
+    <span class="notif-sheet-emoji">🔔</span>
+    <div class="notif-sheet-title">ACTIVAR NOTIFICACIONES</div>
+    <div class="notif-sheet-body">
+      Voy a avisarte <strong>justo antes</strong> y <strong>cuando empiece</strong> cada actividad del día,
+      aunque tengas la app cerrada.
+    </div>
+    <div class="notif-sheet-btns">
+      <button class="btn-allow" onclick="grantNotifications()">🔥 Sí, activar avisos</button>
+      <button class="btn-skip" onclick="closeNotifSheet()">Ahora no</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+// SCHEDULE DATA
+// ════════════════════════════════════════════════
+const SCHEDULE = [
+  { id:'wake',     time:'6:00',  h:6,  m:0,  eh:6,  em:20,
+    name:'Levantarte',        emoji:'☀️',
+    tasks:['1 vaso de agua 💧','Lavar cara + hidratante','Protector solar','Todo en 10 min max'] },
+  { id:'breakfast',time:'6:20',  h:6,  m:20, eh:7,  em:0,
+    name:'Desayuno Rápido',   emoji:'🍳',
+    tasks:['2 huevos hervidos o rápidos','1 fruta — naranja 🍊 o banana','Energía sin engordar ✔️'] },
+  { id:'uni',      time:'7:00',  h:7,  m:0,  eh:12, em:0,
+    name:'Universidad',       emoji:'🎓',
+    tasks:['Lleva tu botella de agua','Si hambre: come fruta 🍎','¡Enfócate en las clases!'] },
+  { id:'lunch',    time:'12:30', h:12, m:30, eh:13, em:0,
+    name:'Almuerzo',          emoji:'🍗',
+    tasks:['Pollo / carne / atún','Arroz (no mucho)','Verduras','Este es tu combustible 🔥'] },
+  { id:'work',     time:'13:00', h:13, m:0,  eh:16, em:0,
+    name:'Trabajo',           emoji:'💼',
+    tasks:['Camina lo más posible','Muévete siempre','Esto cuenta como cardio 🔥'] },
+  { id:'snack',    time:'16:00', h:16, m:0,  eh:16, em:30,
+    name:'Break & Snack',     emoji:'🍎',
+    tasks:['1 fruta o yogurt','Hidrátate bien 💧'] },
+  { id:'work2',    time:'16:30', h:16, m:30, eh:22, em:30,
+    name:'Continúa trabajo',  emoji:'💪',
+    tasks:['Sigue moviéndote','Evita comida basura','¡Queda poco!'] },
+  { id:'dinner',   time:'22:45', h:22, m:45, eh:23, em:10,
+    name:'Cena Ligera',       emoji:'🥗',
+    tasks:['2 huevos o atún','Nada pesado por la noche','Menos es más 🌙'] },
+  { id:'exercise', time:'23:10', h:23, m:10, eh:23, em:35,
+    name:'Ejercicio 20 min',  emoji:'🏋️',
+    tasks:['Flexiones 3×8–12 💪','Sentadillas 3×15','Plancha 3×30 seg','Solo 20 min — ¡constante!'] },
+  { id:'skincare', time:'23:35', h:23, m:35, eh:0,  em:0,
+    name:'Cuidado Nocturno',  emoji:'🧼',
+    tasks:['Lavar cara','Hidratante nocturno'] },
+  { id:'sleep',    time:'00:00', h:0,  m:0,  eh:6,  em:0,
+    name:'Dormir',            emoji:'😴',
+    tasks:['Descansa bien ✨','Mañana vuelves a ganar 🔥','Eres imparable'] }
+];
+
+const DAYS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let swReg = null;
+let notifGranted = false;
+let isMuted = false;
+let notifScheduled = false;
+let tickInterval = null;
+let alarmInterval = null;
+
+// ════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════
+const toMin = (h, m) => h * 60 + m;
+
+function getActiveIndex(now) {
+  const cur = toMin(now.getHours(), now.getMinutes());
+  for (let i = 0; i < SCHEDULE.length; i++) {
+    const s = SCHEDULE[i];
+    const start = toMin(s.h, s.m);
+    const end   = (s.eh === 0 && s.em === 0) ? 24*60 : toMin(s.eh, s.em);
+    if (s.id === 'sleep') {
+      if (cur >= start || cur < toMin(6, 0)) return i;
+    } else if (cur >= start && cur < end) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function getStatus(i, activeIdx) {
+  if (i === activeIdx) return 'active';
+  if (activeIdx === -1) return 'upcoming';
+  if (i === activeIdx + 1) return 'next-up';
+  if (i < activeIdx) return 'past';
+  return 'upcoming';
+}
+
+function minutesToNext(now, nextItem) {
+  const cur  = toMin(now.getHours(), now.getMinutes());
+  const next = toMin(nextItem.h, nextItem.m);
+  let diff = next - cur;
+  if (diff < 0) diff += 24 * 60;
+  return diff;
+}
+
+function formatCountdown(totalMin) {
+  if (totalMin >= 60) {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  }
+  return `${totalMin}m`;
+}
+
+// ════════════════════════════════════════════════
+// STREAK
+// ════════════════════════════════════════════════
+function getStreak() {
+  try { return JSON.parse(localStorage.getItem('rutina_streak') || '{"count":0,"lastDay":null,"days":[]}'); }
+  catch { return { count:0, lastDay:null, days:[] }; }
+}
+function saveStreak(d) { localStorage.setItem('rutina_streak', JSON.stringify(d)); }
+
+function isYesterday(dateStr) {
+  const y = new Date(); y.setDate(y.getDate()-1);
+  return y.toDateString() === dateStr;
+}
+
+function renderStreak() {
+  const s = getStreak();
+  const today = new Date().toDateString();
+  document.getElementById('streakNum').textContent = s.count;
+  document.getElementById('doneLabel').textContent = s.lastDay === today ? '¡Listo! 🎉' : 'Pendiente';
+
+  const doneBtn = document.getElementById('doneBtn');
+  if (s.lastDay === today) {
+    doneBtn.textContent = '✅ ¡Ya está hecho hoy!';
+    doneBtn.classList.add('done-today');
+  } else {
+    doneBtn.textContent = '✓ Marcar como listo';
+    doneBtn.classList.remove('done-today');
+  }
+
+  const dots = document.getElementById('streakDots');
+  dots.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const d = document.createElement('div');
+    const filled = i < s.count && s.count > 0;
+    const isToday = s.lastDay === today && i === Math.min(s.count-1, 6);
+    d.className = 's-dot' + (isToday ? ' today' : filled ? ' lit' : '');
+    dots.appendChild(d);
+  }
+}
+
+// ════════════════════════════════════════════════
+// CLOCK + RENDER
+// ════════════════════════════════════════════════
+function renderClock(now) {
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const hDisp = String(h % 12 || 12).padStart(2, '0');
+  document.getElementById('clockH').textContent = hDisp;
+  document.getElementById('clockM').textContent = String(m).padStart(2, '0');
+  document.getElementById('clockAMPM').textContent = h < 12 ? 'AM' : 'PM';
+  document.getElementById('clockDate').textContent =
+    DAYS[now.getDay()].substring(0,3).toUpperCase() + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()].toUpperCase();
+}
+
+function renderDynamic(now, activeIdx) {
+  const container = document.getElementById('dynamicContent');
+  const active = activeIdx >= 0 ? SCHEDULE[activeIdx] : null;
+  const nextIdx = activeIdx >= 0 ? (activeIdx + 1) % SCHEDULE.length : 0;
+  const next    = SCHEDULE[nextIdx];
+  const minsLeft = minutesToNext(now, next);
+  const isWarning = minsLeft > 0 && minsLeft <= 10 && active && active.id !== 'sleep';
+
+  let html = '';
+
+  if (active) {
+    const endLabel = active.eh === 0 && active.em === 0 ? '00:00' : `${String(active.eh).padStart(2,'0')}:${String(active.em).padStart(2,'0')}`;
+    html += `
+      <div class="active-block" data-emoji="${active.emoji}">
+        <div class="active-tag"><div class="live-dot"></div>AHORA MISMO</div>
+        <div class="active-name">${active.emoji} ${active.name}</div>
+        <div class="active-time-range">${active.time} → ${endLabel}</div>
+        <div class="active-tasks">
+          ${active.tasks.map(t => `<div class="active-task-item">${t}</div>`).join('')}
+        </div>
+        <div class="active-countdown">
+          <div class="countdown-label">Próximo en</div>
+          <div class="countdown-val">${formatCountdown(minsLeft)}</div>
+        </div>
+      </div>`;
+  } else {
+    html += `
+      <div class="sleep-block">
+        <div class="sleep-emoji">🌙</div>
+        <div class="sleep-title">TIEMPO LIBRE</div>
+        <div class="sleep-sub">No hay tarea activa en este momento.</div>
+      </div>`;
+  }
+
+  if (isWarning) {
+    html += `
+      <div class="warning-block">
+        <div class="warning-icon">⏰</div>
+        <div class="warning-text">
+          <div class="warning-title">¡Prepárate!</div>
+          <div class="warning-sub">${next.emoji} ${next.name} empieza pronto</div>
+        </div>
+        <div class="warning-time">${minsLeft}m</div>
+      </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderTimeline(now, activeIdx) {
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = SCHEDULE.map((item, i) => {
+    const status = getStatus(i, activeIdx);
+    const doneIcon = status === 'past' ? '<span class="tl-check">✓</span>' : '';
+    const taskHtml = item.tasks.map(t => `<div class="tl-task">${t}</div>`).join('');
+    return `
+      <div class="tl-item ${status}">
+        <div class="tl-time">${item.time}</div>
+        <div class="tl-spine">
+          <div class="tl-dot"></div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-header">
+            <span class="tl-emoji">${item.emoji}</span>
+            <span class="tl-name">${item.name}</span>
+            ${doneIcon}
+          </div>
+          <div class="tl-tasks">${taskHtml}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function tick() {
+  const now = new Date();
+  const activeIdx = getActiveIndex(now);
+  renderClock(now);
+  renderDynamic(now, activeIdx);
+  renderTimeline(now, activeIdx);
+  renderStreak();
+}
+
+// ════════════════════════════════════════════════
+// NOTIFICATIONS
+// ════════════════════════════════════════════════
+function getMuted() { return localStorage.getItem('rutina_muted') === '1'; }
+function setMuted(v) { localStorage.setItem('rutina_muted', v ? '1' : '0'); }
+
+function toggleMute() {
+  isMuted = !isMuted;
+  setMuted(isMuted);
+  document.getElementById('muteBtn').textContent = isMuted ? '🔕' : '🔔';
+  showToast(isMuted ? '🔕 Notificaciones silenciadas' : '🔔 Notificaciones activas');
+}
+
+function updateNotifBtn() {
+  const btn = document.getElementById('notifBtn');
+  const label = document.getElementById('notifLabel');
+  if (Notification.permission === 'granted') {
+    btn.classList.add('active');
+    label.textContent = 'Activas ✓';
+    notifGranted = true;
+  } else {
+    btn.classList.remove('active');
+    label.textContent = 'Activar';
+    notifGranted = false;
+  }
+}
+
+function requestNotifPermission() {
+  if (Notification.permission === 'granted') {
+    showToast('✅ Las notificaciones ya están activas');
+    return;
+  }
+  if (Notification.permission === 'denied') {
+    showToast('⚠️ Permiso bloqueado. Actívalas en Ajustes del navegador.');
+    return;
+  }
+  document.getElementById('notifOverlay').style.display = 'flex';
+}
+
+function closeNotifSheet() {
+  document.getElementById('notifOverlay').style.display = 'none';
+}
+
+async function grantNotifications() {
+  closeNotifSheet();
+  const permission = await Notification.requestPermission();
+  updateNotifBtn();
+  if (permission === 'granted') {
+    notifGranted = true;
+    showToast('🔥 ¡Notificaciones activadas!');
+    scheduleAlarms();
+  } else {
+    showToast('⚠️ Permiso no concedido. Revisa la configuración.');
+  }
+}
+
+function sendNotification(title, body, tag) {
+  if (isMuted || !notifGranted) return;
+  if (swReg) {
+    swReg.active?.postMessage({ type: 'TRIGGER_NOTIFICATION', title, body, tag });
+  } else if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon:'./icon-192.png', tag, renotify: true, vibrate:[200,100,200] });
+  }
+}
+
+// Check alarms every 30 seconds
+let lastNotifFired = {};
+
+function scheduleAlarms() {
+  if (alarmInterval) clearInterval(alarmInterval);
+  alarmInterval = setInterval(checkAlarms, 30000);
+  checkAlarms(); // immediate check
+}
+
+function checkAlarms() {
+  if (!notifGranted || isMuted) return;
+  const now = new Date();
+  const curMin = toMin(now.getHours(), now.getMinutes());
+
+  SCHEDULE.forEach(item => {
+    const startMin = toMin(item.h, item.m);
+    const warnMin  = startMin - 10 < 0 ? startMin - 10 + 24*60 : startMin - 10;
+
+    // NOTIF: 10 min before
+    const warnKey = `warn_${item.id}_${now.toDateString()}`;
+    if (curMin === warnMin && !lastNotifFired[warnKey]) {
+      lastNotifFired[warnKey] = true;
+      sendNotification(
+        `⏰ En 10 min: ${item.emoji} ${item.name}`,
+        item.tasks[0] + (item.tasks[1] ? ' · ' + item.tasks[1] : ''),
+        'warn-' + item.id
+      );
+    }
+
+    // NOTIF: at start time
+    const startKey = `start_${item.id}_${now.toDateString()}`;
+    if (curMin === startMin && !lastNotifFired[startKey]) {
+      lastNotifFired[startKey] = true;
+      sendNotification(
+        `🔥 ¡Empieza ya! ${item.emoji} ${item.name}`,
+        item.tasks.slice(0, 2).join(' · '),
+        'start-' + item.id
+      );
+    }
+  });
+}
+
+// ════════════════════════════════════════════════
+// DONE BUTTON
+// ════════════════════════════════════════════════
+function markDone() {
+  const streak = getStreak();
+  const today  = new Date().toDateString();
+  if (streak.lastDay === today) {
+    showToast('✅ ¡Ya marcaste hoy! Sigue así 🔥');
+    return;
+  }
+  streak.count = (streak.lastDay && isYesterday(streak.lastDay)) ? streak.count + 1 : 1;
+  streak.lastDay = today;
+  streak.days = [...(streak.days || []).slice(-6), today];
+  saveStreak(streak);
+  renderStreak();
+  showToast(`🔥 ¡Día ${streak.count} completado! Racha en marcha`);
+  sendNotification('🏆 ¡Día completado!', `Llevas ${streak.count} días consecutivos. ¡Imparable!`, 'done');
+}
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+function showToast(msg) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ════════════════════════════════════════════════
+// SERVICE WORKER INIT
+// ════════════════════════════════════════════════
+async function initSW() {
+  if (!('serviceWorker' in navigator)) {
+    console.warn('Service Worker no soportado');
+    return;
+  }
+  try {
+    swReg = await navigator.serviceWorker.register('./sw.js');
+    console.log('SW registrado:', swReg.scope);
+    // Send schedule to SW
+    const sw = swReg.active || swReg.installing || swReg.waiting;
+    if (sw) sw.postMessage({ type: 'SCHEDULE_NOTIFICATIONS', schedule: SCHEDULE });
+  } catch (err) {
+    console.error('SW error:', err);
+  }
+}
+
+// ════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════
+(async () => {
+  isMuted = getMuted();
+  document.getElementById('muteBtn').textContent = isMuted ? '🔕' : '🔔';
+
+  await initSW();
+
+  // Auto-show permission sheet if not yet decided
+  if ('Notification' in window && Notification.permission === 'default') {
+    setTimeout(() => {
+      document.getElementById('notifOverlay').style.display = 'flex';
+    }, 1500);
+  }
+
+  updateNotifBtn();
+
+  if (Notification.permission === 'granted') {
+    notifGranted = true;
+    scheduleAlarms();
+  }
+
+  tick();
+  tickInterval = setInterval(tick, 15000);
+
+  // Auto-scroll active item into view
+  setTimeout(() => {
+    const activeEl = document.querySelector('.tl-item.active');
+    if (activeEl) activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 600);
+})();
+</script>
+</body>
+</html>
